@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+
+  # ==================== INFRASTRUCTURE ====================
+
+  # Base de données pour produits-service
+  postgres-produits:
+    image: postgres:16
+    container_name: postgres-produits
+    environment:
+      POSTGRES_DB: produitsdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-produits-data:/var/lib/postgresql/data
+
+  # Base de données pour avis-service
+  postgres-avis:
+    image: postgres:16
+    container_name: postgres-avis
+    environment:
+      POSTGRES_DB: avisdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"  # Port 5433 sur la machine → 5432 dans le conteneur
+    volumes:
+      - postgres-avis-data:/var/lib/postgresql/data
+
+  # Cache Redis pour produits-service
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  # ==================== MICROSERVICES ====================
+
+  # Annuaire de services
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+
+  # Service Produits
+  produits-service:
+    build: ./produits-service
+    container_name: produits-service
+    ports:
+      - "8091:8091"
+    environment:
+      # Surcharge les valeurs de application.properties
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-produits:5432/produitsdb
+      SPRING_DATA_REDIS_HOST: redis
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      - postgres-produits
+      - redis
+      - eureka-server
+
+  # Service Avis
+  avis-service:
+    build: ./avis-service
+    container_name: avis-service
+    ports:
+      - "8092:8092"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-avis:5432/avisdb
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      - postgres-avis
+      - eureka-server
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8090:8090"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+
+volumes:
+  postgres-produits-data:
+  postgres-avis-data:
