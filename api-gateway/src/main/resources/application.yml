@@ -1,31 +1,32 @@
 server:
-  port: 8090
+port: 8090
 
 spring:
-  application:
-    name: api-gateway
-  cloud:
-    gateway:
-      routes:
-        # Route 1 : produits
-        - id: produits-route
-          uri: lb://produits-service    # "lb://" = load balancer via Eureka
-          predicates:
-            - Path=/api/produits/**
+application:
+name: api-gateway
 
-        # Route 2 : catégories
-        - id: categories-route
-          uri: lb://produits-service
-          predicates:
-            - Path=/api/categories/**
+cloud:
+gateway:
+routes:
 
-        # Route 3 : avis
-        - id: avis-route
-          uri: lb://avis-service
-          predicates:
-            - Path=/api/avis/**
+  ```
+- id: produits-route
+  uri: lb://produits-service
+  predicates:
+    - Path=/api/produits/**
+
+- id: categories-route
+  uri: lb://produits-service
+  predicates:
+    - Path=/api/categories/**
+
+- id: avis-route
+  uri: lb://avis-service
+  predicates:
+    - Path=/api/avis/**
+  ```
 
 eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+client:
+service-url:
+defaultZone: http://localhost:8761/eureka/
