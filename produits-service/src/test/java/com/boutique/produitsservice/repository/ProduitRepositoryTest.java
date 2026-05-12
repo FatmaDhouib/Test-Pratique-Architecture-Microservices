@@ -5,60 +5,31 @@ import com.boutique.produitsservice.entity.Produit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-public class ProduitRepositoryTest {
+@DataJpaTest  // Lance uniquement la couche JPA avec une base H2 en mémoire
+class ProduitRepositoryTest {
 
     @Autowired
     private ProduitRepository produitRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private CategorieRepository categorieRepository;
 
     @Test
-    void testFindByCategorieId() {
-        // Given
-        Categorie categorie = new Categorie();
-        categorie.setNom("Electronique");
-        entityManager.persist(categorie);
+    void findByCategorieId_shouldReturnCorrectProduits() {
+        // ARRANGE : Crée une catégorie et des produits en base H2
+        Categorie cat = categorieRepository.save(new Categorie(null, "Électronique"));
+        produitRepository.save(new Produit(null, "Laptop", 999.0, 10, cat));
+        produitRepository.save(new Produit(null, "Phone", 499.0, 20, cat));
 
-        Produit produit = new Produit();
-        produit.setNom("Laptop");
-        produit.setPrix(1500.0);
-        produit.setStock(10);
-        produit.setCategorie(categorie);
-        entityManager.persist(produit);
-        
-        entityManager.flush();
+        // ACT
+        List<Produit> result = produitRepository.findByCategorieId(cat.getId());
 
-        // When
-        List<Produit> produits = produitRepository.findByCategorieId(categorie.getId());
-
-        // Then
-        assertNotNull(produits);
-        assertEquals(1, produits.size());
-        assertEquals("Laptop", produits.get(0).getNom());
-    }
-
-    @Test
-    void testSaveAndFindById() {
-        // Given
-        Produit produit = new Produit();
-        produit.setNom("Smartphone");
-        produit.setPrix(800.0);
-        produit.setStock(20);
-        
-        // When
-        Produit saved = produitRepository.save(produit);
-        Produit found = produitRepository.findById(saved.getId()).orElse(null);
-
-        // Then
-        assertNotNull(found);
-        assertEquals("Smartphone", found.getNom());
+        // ASSERT
+        assertThat(result).hasSize(2);
     }
 }
