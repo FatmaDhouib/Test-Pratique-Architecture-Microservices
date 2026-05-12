@@ -53,15 +53,17 @@ services:
     ports:
       - "8091:8091"
     environment:
-      # Surcharge les valeurs de application.properties
+      # Override localhost → Docker service names
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-produits:5432/produitsdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       - postgres-produits
       - redis
       - eureka-server
-
   # Service Avis
   avis-service:
     build: ./avis-service
@@ -70,6 +72,8 @@ services:
       - "8092:8092"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-avis:5432/avisdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       - postgres-avis
@@ -85,7 +89,6 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       - eureka-server
-
 volumes:
   postgres-produits-data:
   postgres-avis-data:
