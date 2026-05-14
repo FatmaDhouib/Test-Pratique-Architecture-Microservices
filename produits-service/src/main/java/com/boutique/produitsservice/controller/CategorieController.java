@@ -24,7 +24,7 @@ public class CategorieController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Détail d'une catégorie")
-    public Categorie findById(@PathVariable Long id) {
+    public Categorie findById(@PathVariable("id") Long id) {
         return categorieService.findById(id);
     }
 }

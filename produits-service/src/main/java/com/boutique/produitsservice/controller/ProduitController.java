@@ -19,7 +19,7 @@ public class ProduitController {
 
     @GetMapping
     @Operation(summary = "Liste tous les produits ou filtre par catégorie")
-    public List<Produit> findAll(@RequestParam(required = false) Long categorieId) {
+    public List<Produit> findAll(@RequestParam(name = "categorieId", required = false) Long categorieId) {
         if (categorieId != null) {
             return produitService.findByCategorieId(categorieId);
         }
@@ -28,7 +28,7 @@ public class ProduitController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Détail d'un produit")
-    public Produit findById(@PathVariable Long id) {
+    public Produit findById(@PathVariable("id") Long id) {
         return produitService.findById(id);
     }
 

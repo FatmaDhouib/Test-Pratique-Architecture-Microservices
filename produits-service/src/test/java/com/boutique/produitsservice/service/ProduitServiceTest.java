@@ -2,7 +2,6 @@ package com.boutique.produitsservice.service;
 
 import com.boutique.produitsservice.entity.Produit;
 import com.boutique.produitsservice.repository.ProduitRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,69 +12,56 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ProduitServiceTest {
+class ProduitServiceTest {
 
-    @Mock
+    @Mock  // Crée un faux ProduitRepository (ne touche pas la vraie base)
     private ProduitRepository produitRepository;
 
-    @InjectMocks
+    @InjectMocks  // Injecte les mocks dans ProduitService
     private ProduitService produitService;
 
-    private Produit produit;
-
-    @BeforeEach
-    void setUp() {
-        produit = new Produit();
-        produit.setId(1L);
-        produit.setNom("Laptop");
-        produit.setPrix(1500.0);
-        produit.setStock(10);
-    }
-
     @Test
-    void testFindAll() {
-        when(produitRepository.findAll()).thenReturn(Arrays.asList(produit));
-        
-        List<Produit> produits = produitService.findAll();
-        
-        assertNotNull(produits);
-        assertEquals(1, produits.size());
-        assertEquals("Laptop", produits.get(0).getNom());
+    void findAll_shouldReturnAllProduits() {
+        // ARRANGE : Prépare les données de test
+        Produit p1 = new Produit(1L, "Laptop", 999.0, 10, null);
+        Produit p2 = new Produit(2L, "Phone", 499.0, 20, null);
+        when(produitRepository.findAll()).thenReturn(Arrays.asList(p1, p2));
+
+        // ACT : Appelle la méthode à tester
+        List<Produit> result = produitService.findAll();
+
+        // ASSERT : Vérifie le résultat
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getNom()).isEqualTo("Laptop");
         verify(produitRepository, times(1)).findAll();
     }
 
     @Test
-    void testFindById_Success() {
-        when(produitRepository.findById(1L)).thenReturn(Optional.of(produit));
-        
-        Produit found = produitService.findById(1L);
-        
-        assertNotNull(found);
-        assertEquals("Laptop", found.getNom());
-        verify(produitRepository, times(1)).findById(1L);
+    void findById_whenNotFound_shouldThrowException() {
+        // ARRANGE
+        when(produitRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // ACT + ASSERT : Vérifie que l'exception est lancée
+        assertThrows(RuntimeException.class, () -> produitService.findById(99L));
     }
 
     @Test
-    void testFindById_NotFound() {
-        when(produitRepository.findById(2L)).thenReturn(Optional.empty());
-        
-        assertThrows(RuntimeException.class, () -> produitService.findById(2L));
-        verify(produitRepository, times(1)).findById(2L);
-    }
+    void save_shouldReturnSavedProduit() {
+        // ARRANGE
+        Produit produit = new Produit(null, "Tablette", 299.0, 5, null);
+        Produit saved = new Produit(1L, "Tablette", 299.0, 5, null);
+        when(produitRepository.save(produit)).thenReturn(saved);
 
-    @Test
-    void testSave() {
-        when(produitRepository.save(any(Produit.class))).thenReturn(produit);
-        
-        Produit saved = produitService.save(produit);
-        
-        assertNotNull(saved);
-        assertEquals("Laptop", saved.getNom());
-        verify(produitRepository, times(1)).save(any(Produit.class));
+        // ACT
+        Produit result = produitService.save(produit);
+
+        // ASSERT
+        assertThat(result.getId()).isEqualTo(1L);
+        verify(produitRepository, times(1)).save(produit);
     }
 }

@@ -10,5 +10,5 @@ public interface ProduitClient {
 
     // Quand on appelle cette méthode, Feign fait un GET http://produits-service/api/produits/{id}
     @GetMapping("/api/produits/{id}")
-    Object getProduitById(@PathVariable Long id);
+    Object getProduitById(@PathVariable("id") Long id);
 }

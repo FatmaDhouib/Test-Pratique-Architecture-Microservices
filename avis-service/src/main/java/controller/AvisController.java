@@ -19,7 +19,7 @@ public class AvisController {
 
     @GetMapping("/{produitId}")
     @Operation(summary = "Liste les avis d'un produit")
-    public List<Avis> findByProduitId(@PathVariable Long produitId) {
+    public List<Avis> findByProduitId(@PathVariable("produitId") Long produitId) {
         return avisService.findByProduitId(produitId);
     }
 
